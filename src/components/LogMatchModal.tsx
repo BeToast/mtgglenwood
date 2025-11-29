@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import PlayerSelector, { type Player } from './PlayerSelector';
 import DeckSelector from './DeckSelector';
+import DeckDropdown from './DeckDropdown';
 import { type Deck } from './DeckItem';
 import './LogMatchModal.css';
 
@@ -178,18 +179,12 @@ function LogMatchModal({ onSave, onDiscard }: LogMatchModalProps) {
 
               <label>Deck</label>
               {player1Decks.length > 0 ? (
-                <select
-                  value={player1Deck?.id || ''}
-                  onChange={(e) => {
-                    const deck = player1Decks.find(d => d.id === e.target.value);
-                    setPlayer1Deck(deck || null);
-                  }}
-                >
-                  <option value="">Select deck...</option>
-                  {player1Decks.map(deck => (
-                    <option key={deck.id} value={deck.id}>{deck.name}</option>
-                  ))}
-                </select>
+                <DeckDropdown
+                  decks={player1Decks}
+                  selectedDeck={player1Deck}
+                  onSelect={setPlayer1Deck}
+                  placeholder="Select deck..."
+                />
               ) : (
                 <div className="no-decks-message">You have no decks</div>
               )}
@@ -237,18 +232,12 @@ function LogMatchModal({ onSave, onDiscard }: LogMatchModalProps) {
 
               <label>Deck</label>
               {player2 && player2Decks.length > 0 ? (
-                <select
-                  value={player2Deck?.id || ''}
-                  onChange={(e) => {
-                    const deck = player2Decks.find(d => d.id === e.target.value);
-                    setPlayer2Deck(deck || null);
-                  }}
-                >
-                  <option value="">Select deck...</option>
-                  {player2Decks.map(deck => (
-                    <option key={deck.id} value={deck.id}>{deck.name}</option>
-                  ))}
-                </select>
+                <DeckDropdown
+                  decks={player2Decks}
+                  selectedDeck={player2Deck}
+                  onSelect={setPlayer2Deck}
+                  placeholder="Select deck..."
+                />
               ) : (
                 <div className="no-decks-message">
                   {player2 ? 'This player has no decks' : 'Select a player first'}

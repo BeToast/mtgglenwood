@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { useUnsavedChanges } from "../context/UnsavedChangesContext";
 import DeckItem, { type Deck } from "../components/DeckItem";
 import AddDeckModal from "../components/AddDeckModal";
+import EditDeckModal from "../components/EditDeckModal";
 import "./Profile.css";
 
 interface UserProfile {
@@ -34,6 +35,7 @@ function Profile() {
    const [originalDecks, setOriginalDecks] = useState<Deck[]>([]);
    const [deckSearch, setDeckSearch] = useState("");
    const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
+   const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
 
    useEffect(() => {
       if (user) {
@@ -182,6 +184,15 @@ function Profile() {
       setDecks(decks.filter((deck) => deck.id !== id));
    };
 
+   const updateDeck = (id: string, deckName: string, decklistUrl: string) => {
+      setDecks(decks.map(deck =>
+         deck.id === id
+            ? { ...deck, name: deckName, decklistUrl }
+            : deck
+      ));
+      setEditingDeck(null);
+   };
+
    const handleGoogleSignIn = async () => {
       try {
          await signInWithPopup(auth, googleProvider);
@@ -324,6 +335,7 @@ function Profile() {
                         key={deck.id}
                         deck={deck}
                         onDelete={deleteDeck}
+                        onClick={setEditingDeck}
                      />
                   ))}
                   <button
@@ -340,6 +352,14 @@ function Profile() {
             <AddDeckModal
                onSave={addDeck}
                onDiscard={() => setIsAddDeckModalOpen(false)}
+            />
+         )}
+
+         {editingDeck && (
+            <EditDeckModal
+               deck={editingDeck}
+               onSave={updateDeck}
+               onDiscard={() => setEditingDeck(null)}
             />
          )}
       </div>

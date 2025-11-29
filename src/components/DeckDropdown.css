@@ -1,0 +1,105 @@
+.deck-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.deck-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  font-size: 1rem;
+  background-color: var(--bg-brown-deep);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.deck-dropdown-trigger:hover {
+  border-color: var(--accent-blue);
+}
+
+.selected-value {
+  color: var(--text-primary);
+}
+
+.placeholder-value {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.dropdown-arrow {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+}
+
+.deck-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  background-color: var(--bg-brown);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  max-height: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.deck-dropdown-search {
+  padding: 0.75rem;
+  font-size: 1rem;
+  background-color: var(--bg-brown-deep);
+  color: var(--text-primary);
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  outline: none;
+}
+
+.deck-dropdown-search:focus {
+  background-color: var(--bg-brown-light);
+}
+
+.deck-dropdown-search::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.deck-dropdown-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.deck-dropdown-item {
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.deck-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.deck-dropdown-item:hover {
+  background-color: var(--bg-brown-light);
+}
+
+.deck-dropdown-item.selected {
+  background-color: var(--bg-brown-light);
+  color: var(--accent-blue);
+  font-weight: 600;
+}
+
+.deck-dropdown .no-decks-message {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
