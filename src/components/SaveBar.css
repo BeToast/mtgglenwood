@@ -1,0 +1,42 @@
+.save-bar {
+  flex-shrink: 0;
+  flex-grow: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1a1a1a;
+  border-top: 1px solid #333;
+  padding: 0.75rem 1rem;
+  gap: 1rem;
+  height: 70px;
+}
+
+.discard-btn,
+.save-changes-btn {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.discard-btn {
+  background-color: #333;
+  color: white;
+}
+
+.discard-btn:hover {
+  background-color: #444;
+}
+
+.save-changes-btn {
+  background-color: #646cff;
+  color: white;
+}
+
+.save-changes-btn:hover {
+  background-color: #535bf2;
+}
