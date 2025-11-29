@@ -3,15 +3,15 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem;
-  background-color: #1a1a1a;
-  border: 1px solid #333;
+  background-color: var(--bg-brown-deep);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   gap: 1rem;
   transition: border-color 0.2s;
 }
 
 .deck-item:hover {
-  border-color: #646cff;
+  border-color: var(--accent-blue);
 }
 
 .deck-info {
@@ -24,18 +24,18 @@
 
 .deck-name {
   font-weight: 500;
-  color: white;
+  color: var(--text-primary);
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .deck-name:hover {
-  color: #646cff;
+  color: var(--accent-blue);
 }
 
 .deck-url {
   font-size: 0.75rem;
-  color: #666;
+  color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -49,9 +49,9 @@
   align-items: center;
   justify-content: center;
   background-color: transparent;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #888;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
   font-size: 1rem;
@@ -59,7 +59,7 @@
 }
 
 .deck-delete-btn:hover {
-  background-color: #ef4444;
-  border-color: #ef4444;
-  color: white;
+  background-color: var(--accent-red);
+  border-color: var(--accent-red);
+  color: var(--text-primary);
 }

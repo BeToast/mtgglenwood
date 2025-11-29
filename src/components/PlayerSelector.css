@@ -1,0 +1,88 @@
+.player-selector-modal {
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.player-selector-search {
+  padding: 0.75rem;
+  font-size: 1rem;
+  background-color: var(--bg-brown-deep);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  transition: border-color 0.2s;
+}
+
+.player-selector-search:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+.player-selector-search::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.player-selector-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.player-selector-loading,
+.no-players-found {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 2rem;
+}
+
+.player-selector-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: var(--bg-brown-deep);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.player-selector-item:hover {
+  background-color: var(--bg-brown-light);
+  border-color: var(--accent-blue);
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.player-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.player-details {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.player-firstname {
+  color: var(--text-secondary);
+}
+
+.player-elo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+}

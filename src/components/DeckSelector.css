@@ -1,0 +1,91 @@
+.deck-selector-modal {
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.deck-selector-search {
+  padding: 0.75rem;
+  font-size: 1rem;
+  background-color: var(--bg-brown-deep);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  transition: border-color 0.2s;
+}
+
+.deck-selector-search:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+.deck-selector-search::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.back-to-players-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  background-color: var(--bg-brown-deep);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  transition: all 0.2s;
+}
+
+.back-to-players-btn:hover {
+  background-color: var(--bg-brown-light);
+  border-color: var(--accent-blue);
+  color: var(--text-primary);
+}
+
+.deck-selector-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.deck-selector-loading,
+.no-items-found {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 2rem;
+}
+
+.deck-selector-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: var(--bg-brown-deep);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deck-selector-item:hover {
+  background-color: var(--bg-brown-light);
+  border-color: var(--accent-blue);
+}
+
+.deck-selector-item .player-name,
+.deck-selector-item .deck-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.deck-selector-item .deck-count {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}

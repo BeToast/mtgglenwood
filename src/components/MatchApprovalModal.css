@@ -1,0 +1,18 @@
+.match-approval-modal {
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.approval-loading {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 2rem;
+}
+
+.approval-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}

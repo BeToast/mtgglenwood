@@ -13,6 +13,12 @@ function BottomNav() {
         <span className="nav-icon">🪜</span>
       </Link>
       <Link
+        to="/matches"
+        className={`nav-button ${location.pathname === '/matches' ? 'active' : ''}`}
+      >
+        <span className="nav-icon">🎴</span>
+      </Link>
+      <Link
         to="/profile"
         className={`nav-button ${location.pathname === '/profile' ? 'active' : ''}`}
       >

@@ -4,8 +4,8 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
-  background-color: #1a1a1a;
-  border-top: 1px solid #333;
+  background-color: var(--bg-brown-deep);
+  border-top: 1px solid var(--border-color);
   padding: 0.5rem 0;
   height: 70px;
 }
@@ -16,18 +16,18 @@
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  color: #888;
+  color: var(--text-secondary);
   transition: color 0.2s;
   flex: 1;
   padding: 0.5rem;
 }
 
 .nav-button:hover {
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .nav-button.active {
-  color: #646cff;
+  color: var(--accent-blue);
 }
 
 .nav-icon {
