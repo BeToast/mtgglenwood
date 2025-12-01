@@ -179,6 +179,7 @@ function Matches() {
                                     )
                                  )}
                               </div>
+                              <span className="points-indicator">+3pts</span>
                               <span className="player-name">{winner.name}</span>
                               <span
                                  className={`deck-name ${copiedDeck === winnerDeckId ? 'copied' : ''}`}
@@ -200,6 +201,7 @@ function Matches() {
                                     )
                                  )}
                               </div>
+                              <span className="points-indicator">+1pt</span>
                               <span className="player-name">{loser.name}</span>
                               <span
                                  className={`deck-name ${copiedDeck === loserDeckId ? 'copied' : ''}`}

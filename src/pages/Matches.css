@@ -94,6 +94,14 @@
    line-height: 1;
 }
 
+.points-indicator {
+   font-size: 0.875rem;
+   font-weight: 600;
+   font-style: normal;
+   min-width: 45px;
+   display: inline-block;
+}
+
 .match-result.winner {
    color: var(--accent-green);
 }

@@ -310,7 +310,7 @@ function LogMatchModal({ onSave, onDiscard }: LogMatchModalProps) {
               <h2>Confirm Match</h2>
             </div>
             <p className="confirmation-message">
-              Once <strong>{player2.alias || player2.irlFirstName || 'the other player'}</strong> approves, this will appear in match history and affect ELO.
+              Once <strong>{player2.alias || player2.irlFirstName || 'the other player'}</strong> approves, you will be awarded <strong>{player1Wins > player2Wins ? '3' : '1'} point{player1Wins > player2Wins ? 's' : ''}</strong> for {player1Wins > player2Wins ? 'winning' : 'losing'} and <strong>{player2.alias || player2.irlFirstName || 'they'}</strong> will be awarded <strong>{player1Wins > player2Wins ? '1 point' : '3 points'}</strong> for {player1Wins > player2Wins ? 'losing' : 'winning'}.
             </p>
             <div className="modal-actions">
               <button className="modal-discard-btn" onClick={() => setShowConfirmation(false)}>

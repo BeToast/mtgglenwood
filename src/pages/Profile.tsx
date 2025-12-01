@@ -1,5 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
-import { signInWithPopup, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import {
+   signInWithPopup,
+   signOut,
+   signInWithEmailAndPassword,
+   createUserWithEmailAndPassword,
+} from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, googleProvider, db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
@@ -15,6 +20,7 @@ interface UserProfile {
    irlFirstName: string;
    decks: Deck[];
    elo: number;
+   points: number;
    wins: number;
    losses: number;
 }
@@ -27,9 +33,10 @@ function Profile() {
    const [alias, setAlias] = useState("");
    const [irlFirstName, setIrlFirstName] = useState("");
    const [decks, setDecks] = useState<Deck[]>([]);
-   const [elo, setElo] = useState<number | null>(null);
+   const [points, setPoints] = useState<number | null>(null);
    const [wins, setWins] = useState<number | null>(null);
    const [losses, setLosses] = useState<number | null>(null);
+   const [elo, setElo] = useState<number | null>(null);
    const [statsLoading, setStatsLoading] = useState(true);
    const [originalAlias, setOriginalAlias] = useState("");
    const [originalIrlFirstName, setOriginalIrlFirstName] = useState("");
@@ -99,14 +106,16 @@ function Profile() {
             const loadedAlias = data.alias || "";
             const loadedFirstName = data.irlFirstName || "";
             const loadedDecks = data.decks || [];
-            const loadedElo = data.elo ?? 1000;
+            const loadedPoints = data.points ?? 0;
             const loadedWins = data.wins ?? 0;
             const loadedLosses = data.losses ?? 0;
+            const loadedElo = data.elo ?? 1069;
 
             setAlias(loadedAlias);
             setIrlFirstName(loadedFirstName);
             setDecks(loadedDecks);
             setElo(loadedElo);
+            setPoints(loadedPoints);
             setWins(loadedWins);
             setLosses(loadedLosses);
             setOriginalAlias(loadedAlias);
@@ -118,12 +127,14 @@ function Profile() {
             const defaultElo = 1069;
             const defaultWins = 0;
             const defaultLosses = 0;
+            const defaultPoints = 0;
 
             await setDoc(docRef, {
                alias: "",
                irlFirstName: "",
                decks: [],
                elo: defaultElo,
+               points: defaultPoints,
                wins: defaultWins,
                losses: defaultLosses,
                email: user.email,
@@ -132,6 +143,7 @@ function Profile() {
             });
 
             setElo(defaultElo);
+            setPoints(defaultPoints);
             setWins(defaultWins);
             setLosses(defaultLosses);
             setOriginalAlias("");
@@ -194,11 +206,11 @@ function Profile() {
    };
 
    const updateDeck = (id: string, deckName: string, decklistUrl: string) => {
-      setDecks(decks.map(deck =>
-         deck.id === id
-            ? { ...deck, name: deckName, decklistUrl }
-            : deck
-      ));
+      setDecks(
+         decks.map((deck) =>
+            deck.id === id ? { ...deck, name: deckName, decklistUrl } : deck
+         )
+      );
       setEditingDeck(null);
    };
 
@@ -221,12 +233,18 @@ function Profile() {
       try {
          await signInWithEmailAndPassword(auth, email.trim(), password.trim());
       } catch (error: any) {
-         if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-            setPendingCredentials({ email: email.trim(), password: password.trim() });
+         if (
+            error.code === "auth/user-not-found" ||
+            error.code === "auth/invalid-credential"
+         ) {
+            setPendingCredentials({
+               email: email.trim(),
+               password: password.trim(),
+            });
             setShowCreateAccountModal(true);
-         } else if (error.code === 'auth/wrong-password') {
+         } else if (error.code === "auth/wrong-password") {
             setAuthError("Incorrect password");
-         } else if (error.code === 'auth/invalid-email') {
+         } else if (error.code === "auth/invalid-email") {
             setAuthError("Invalid email format");
          } else {
             setAuthError("Login failed: " + error.message);
@@ -253,9 +271,9 @@ function Profile() {
          setShowCreateAccountModal(false);
          setPendingCredentials(null);
 
-         if (error.code === 'auth/email-already-in-use') {
+         if (error.code === "auth/email-already-in-use") {
             setAuthError("Email already in use");
-         } else if (error.code === 'auth/weak-password') {
+         } else if (error.code === "auth/weak-password") {
             setAuthError("Password too weak");
          } else {
             setAuthError("Account creation failed: " + error.message);
@@ -275,6 +293,7 @@ function Profile() {
          setIrlFirstName("");
          setDecks([]);
          setElo(null);
+         setPoints(null);
          setWins(null);
          setLosses(null);
          setStatsLoading(true);
@@ -327,7 +346,7 @@ function Profile() {
                            onChange={(e) => setPassword(e.target.value)}
                            placeholder="Enter your password"
                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') handleEmailPasswordLogin();
+                              if (e.key === "Enter") handleEmailPasswordLogin();
                            }}
                         />
                      </div>
@@ -429,8 +448,8 @@ function Profile() {
                ) : (
                   <>
                      <div className="stat-item">
-                        <label>ELO</label>
-                        <span className="stat-value">{elo}</span>
+                        <label>PTS</label>
+                        <span className="stat-value">{points}</span>
                      </div>
                      <div className="stat-item">
                         <label>Wins</label>
@@ -439,6 +458,10 @@ function Profile() {
                      <div className="stat-item">
                         <label>Losses</label>
                         <span className="stat-value">{losses}</span>
+                     </div>
+                     <div className="stat-item">
+                        <label>ELO</label>
+                        <span className="stat-value">{elo}</span>
                      </div>
                   </>
                )}

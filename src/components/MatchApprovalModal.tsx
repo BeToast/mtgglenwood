@@ -174,13 +174,15 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
       await updateDoc(doc(db, 'users', player1Doc.id), {
         elo: eloResult.player1NewElo,
         wins: player1Data.wins + (player1IsWinner ? 1 : 0),
-        losses: player1Data.losses + (player1IsWinner ? 0 : 1)
+        losses: player1Data.losses + (player1IsWinner ? 0 : 1),
+        points: (player1Data.points ?? 0) + (player1IsWinner ? 3 : 1)
       });
 
       await updateDoc(doc(db, 'users', player2Doc.id), {
         elo: eloResult.player2NewElo,
         wins: player2Data.wins + (player1IsWinner ? 0 : 1),
-        losses: player2Data.losses + (player1IsWinner ? 1 : 0)
+        losses: player2Data.losses + (player1IsWinner ? 1 : 0),
+        points: (player2Data.points ?? 0) + (player1IsWinner ? 1 : 3)
       });
 
       // Get deck names
