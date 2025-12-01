@@ -21,6 +21,13 @@ function Home() {
                If you have any comments or concerns, please throw eggs at
                Curtis.
             </p>
+            <div className="cat-image-container">
+               <img
+                  src="/wizardCat.png"
+                  alt="Wizard Cat"
+                  className="cat-image"
+               />
+            </div>
          </div>
       </div>
    );
