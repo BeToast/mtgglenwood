@@ -7,6 +7,12 @@ function BottomNav() {
   return (
     <nav className="bottom-nav">
       <Link
+        to="/"
+        className={`nav-button ${location.pathname === '/' ? 'active' : ''}`}
+      >
+        <span className="nav-icon">🏡</span>
+      </Link>
+      <Link
         to="/ladder"
         className={`nav-button ${location.pathname === '/ladder' ? 'active' : ''}`}
       >

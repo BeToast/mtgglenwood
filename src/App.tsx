@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 import { UnsavedChangesProvider } from './context/UnsavedChangesContext';
 import { useAuth } from './context/AuthContext';
 import { db } from './firebase';
+import Home from './pages/Home';
 import Ladder from './pages/Ladder';
 import Matches from './pages/Matches';
 import Profile from './pages/Profile';
@@ -82,7 +83,7 @@ function AppContent() {
       <div className="app">
         <div className="content">
           <Routes>
-            <Route path="/" element={<Navigate to="/ladder" replace />} />
+            <Route path="/" element={<Home />} />
             <Route path="/ladder" element={<Ladder />} />
             <Route path="/matches" element={<Matches />} />
             <Route path="/profile" element={<Profile />} />
