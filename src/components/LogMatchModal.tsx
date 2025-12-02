@@ -4,7 +4,7 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import PlayerSelector, { type Player } from './PlayerSelector';
 import DeckSelector from './DeckSelector';
-import DeckDropdown from './DeckDropdown';
+import PlayerSection from './PlayerSection';
 import { type Deck } from './DeckItem';
 import './LogMatchModal.css';
 
@@ -17,15 +17,17 @@ function LogMatchModal({ onSave, onDiscard }: LogMatchModalProps) {
   const { user } = useAuth();
   const [player1, setPlayer1] = useState<Player | null>(null);
   const [player2, setPlayer2] = useState<Player | null>(null);
+  const [player1DeckOwner, setPlayer1DeckOwner] = useState<Player | null>(null);
+  const [player2DeckOwner, setPlayer2DeckOwner] = useState<Player | null>(null);
   const [player1Deck, setPlayer1Deck] = useState<Deck | null>(null);
   const [player2Deck, setPlayer2Deck] = useState<Deck | null>(null);
-  const [player1Decks, setPlayer1Decks] = useState<Deck[]>([]);
-  const [player2Decks, setPlayer2Decks] = useState<Deck[]>([]);
   const [player1Wins, setPlayer1Wins] = useState(0);
   const [player2Wins, setPlayer2Wins] = useState(0);
   const [showPlayerSelector, setShowPlayerSelector] = useState(false);
-  const [showDeckSelector, setShowDeckSelector] = useState(false);
-  const [selectingDeckFor, setSelectingDeckFor] = useState<'player1' | 'player2' | null>(null);
+  const [showPlayer1DeckOwnerSelector, setShowPlayer1DeckOwnerSelector] = useState(false);
+  const [showPlayer2DeckOwnerSelector, setShowPlayer2DeckOwnerSelector] = useState(false);
+  const [showPlayer1DeckSelector, setShowPlayer1DeckSelector] = useState(false);
+  const [showPlayer2DeckSelector, setShowPlayer2DeckSelector] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
   useEffect(() => {
@@ -36,13 +38,13 @@ function LogMatchModal({ onSave, onDiscard }: LogMatchModalProps) {
 
   useEffect(() => {
     if (player1) {
-      loadPlayerDecks(player1.uid, 'player1');
+      setPlayer1DeckOwner(player1);
     }
   }, [player1]);
 
   useEffect(() => {
     if (player2) {
-      loadPlayerDecks(player2.uid, 'player2');
+      setPlayer2DeckOwner(player2);
     }
   }, [player2]);
 
@@ -68,39 +70,32 @@ function LogMatchModal({ onSave, onDiscard }: LogMatchModalProps) {
     }
   };
 
-  const loadPlayerDecks = async (uid: string, playerNum: 'player1' | 'player2') => {
-    try {
-      const docRef = doc(db, 'users', uid);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const decks = data.decks || [];
-        if (playerNum === 'player1') {
-          setPlayer1Decks(decks);
-        } else {
-          setPlayer2Decks(decks);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading player decks:', error);
-    }
-  };
-
   const handlePlayerSelect = (player: Player) => {
     setPlayer2(player);
     setPlayer2Deck(null);
     setShowPlayerSelector(false);
   };
 
-  const handleDeckSelect = (deck: Deck) => {
-    if (selectingDeckFor === 'player1') {
-      setPlayer1Deck(deck);
-    } else {
-      setPlayer2Deck(deck);
-    }
-    setShowDeckSelector(false);
-    setSelectingDeckFor(null);
+  const handlePlayer1DeckOwnerSelect = (player: Player) => {
+    setPlayer1DeckOwner(player);
+    setPlayer1Deck(null);
+    setShowPlayer1DeckOwnerSelector(false);
+  };
+
+  const handlePlayer2DeckOwnerSelect = (player: Player) => {
+    setPlayer2DeckOwner(player);
+    setPlayer2Deck(null);
+    setShowPlayer2DeckOwnerSelector(false);
+  };
+
+  const handlePlayer1DeckSelect = (deck: Deck) => {
+    setPlayer1Deck(deck);
+    setShowPlayer1DeckSelector(false);
+  };
+
+  const handlePlayer2DeckSelect = (deck: Deck) => {
+    setPlayer2Deck(deck);
+    setShowPlayer2DeckSelector(false);
   };
 
   const handlePlayer1WinsChange = (wins: number) => {
@@ -177,28 +172,29 @@ function LogMatchModal({ onSave, onDiscard }: LogMatchModalProps) {
                 )}
               </div>
 
+              <label>Whose deck did you play with?</label>
+              <div
+                className="player-display clickable"
+                onClick={() => setShowPlayer1DeckOwnerSelector(true)}
+              >
+                {player1DeckOwner ? (
+                  <span>{player1DeckOwner.alias || player1DeckOwner.irlFirstName || player1DeckOwner.email}</span>
+                ) : (
+                  <span className="placeholder">Select player...</span>
+                )}
+              </div>
+
               <label>Deck</label>
-              {player1Decks.length > 0 ? (
-                <DeckDropdown
-                  decks={player1Decks}
-                  selectedDeck={player1Deck}
-                  onSelect={setPlayer1Deck}
-                  placeholder="Select deck..."
-                />
-              ) : (
-                <div className="no-decks-message">You have no decks</div>
-              )}
-              {!player1Deck && (
-                <button
-                  className="select-other-deck-btn"
-                  onClick={() => {
-                    setSelectingDeckFor('player1');
-                    setShowDeckSelector(true);
-                  }}
-                >
-                  Select another player's deck
-                </button>
-              )}
+              <div
+                className="player-display clickable"
+                onClick={() => player1DeckOwner && setShowPlayer1DeckSelector(true)}
+              >
+                {player1Deck ? (
+                  <span>{player1Deck.name}</span>
+                ) : (
+                  <span className="placeholder">Select deck...</span>
+                )}
+              </div>
 
               <label>Wins</label>
               <div className="wins-checkboxes">
@@ -217,60 +213,18 @@ function LogMatchModal({ onSave, onDiscard }: LogMatchModalProps) {
               </div>
             </div>
 
-            <div className="player-section">
-              <h3>Player 2</h3>
-              <div
-                className="player-display clickable"
-                onClick={() => setShowPlayerSelector(true)}
-              >
-                {player2 ? (
-                  <span>{player2.alias || player2.irlFirstName || player2.email}</span>
-                ) : (
-                  <span className="placeholder">Select player...</span>
-                )}
-              </div>
-
-              <label>Deck</label>
-              {player2 && player2Decks.length > 0 ? (
-                <DeckDropdown
-                  decks={player2Decks}
-                  selectedDeck={player2Deck}
-                  onSelect={setPlayer2Deck}
-                  placeholder="Select deck..."
-                />
-              ) : (
-                <div className="no-decks-message">
-                  {player2 ? 'This player has no decks' : 'Select a player first'}
-                </div>
-              )}
-              {player2 && !player2Deck && (
-                <button
-                  className="select-other-deck-btn"
-                  onClick={() => {
-                    setSelectingDeckFor('player2');
-                    setShowDeckSelector(true);
-                  }}
-                >
-                  Select another player's deck
-                </button>
-              )}
-
-              <label>Wins</label>
-              <div className="wins-checkboxes">
-                {[0, 1].map(num => (
-                  <label key={num} className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={player2Wins >= num + 1}
-                      onChange={() => handlePlayer2WinsChange(
-                        player2Wins >= num + 1 ? num : num + 1
-                      )}
-                    />
-                    {num + 1}
-                  </label>
-                ))}
-              </div>
-            </div>
+            <PlayerSection
+              title="Player 2"
+              player={player2}
+              deckOwner={player2DeckOwner}
+              selectedDeck={player2Deck}
+              wins={player2Wins}
+              onDeckOwnerClick={() => setShowPlayer2DeckOwnerSelector(true)}
+              onDeckClick={() => setShowPlayer2DeckSelector(true)}
+              onWinsChange={handlePlayer2WinsChange}
+              showPlayerSelector={true}
+              onPlayerClick={() => setShowPlayerSelector(true)}
+            />
           </div>
 
           <div className="modal-actions">
@@ -292,14 +246,33 @@ function LogMatchModal({ onSave, onDiscard }: LogMatchModalProps) {
         />
       )}
 
-      {showDeckSelector && (
+      {showPlayer1DeckOwnerSelector && (
+        <PlayerSelector
+          onSelect={handlePlayer1DeckOwnerSelect}
+          onClose={() => setShowPlayer1DeckOwnerSelector(false)}
+        />
+      )}
+
+      {showPlayer2DeckOwnerSelector && (
+        <PlayerSelector
+          onSelect={handlePlayer2DeckOwnerSelect}
+          onClose={() => setShowPlayer2DeckOwnerSelector(false)}
+        />
+      )}
+
+      {showPlayer1DeckSelector && player1DeckOwner && (
         <DeckSelector
-          onSelect={handleDeckSelect}
-          onClose={() => {
-            setShowDeckSelector(false);
-            setSelectingDeckFor(null);
-          }}
-          excludeEmail={user?.email || undefined}
+          onSelect={handlePlayer1DeckSelect}
+          onClose={() => setShowPlayer1DeckSelector(false)}
+          ownerId={player1DeckOwner.uid}
+        />
+      )}
+
+      {showPlayer2DeckSelector && player2DeckOwner && (
+        <DeckSelector
+          onSelect={handlePlayer2DeckSelect}
+          onClose={() => setShowPlayer2DeckSelector(false)}
+          ownerId={player2DeckOwner.uid}
         />
       )}
 

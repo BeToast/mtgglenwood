@@ -3,8 +3,9 @@ import { doc, updateDoc, deleteDoc, addDoc, collection, getDocs } from 'firebase
 import { db } from '../firebase';
 import { type Deck } from './DeckItem';
 import { calculateElo } from '../utils/eloCalculator';
+import PlayerSelector, { type Player } from './PlayerSelector';
 import DeckSelector from './DeckSelector';
-import DeckDropdown from './DeckDropdown';
+import PlayerSection from './PlayerSection';
 import './MatchApprovalModal.css';
 
 interface UnapprovedMatch {
@@ -27,18 +28,20 @@ interface MatchApprovalModalProps {
 }
 
 function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprovalModalProps) {
-  const [player1Name, setPlayer1Name] = useState('');
-  const [player2Name, setPlayer2Name] = useState('');
-  const [player1Decks, setPlayer1Decks] = useState<Deck[]>([]);
-  const [player2Decks, setPlayer2Decks] = useState<Deck[]>([]);
-  const [selectedPlayer1DeckId, setSelectedPlayer1DeckId] = useState(match.player1DeckId);
-  const [selectedPlayer2DeckId, setSelectedPlayer2DeckId] = useState(match.player2DeckId);
+  const [player1, setPlayer1] = useState<Player | null>(null);
+  const [player2, setPlayer2] = useState<Player | null>(null);
+  const [player1DeckOwner, setPlayer1DeckOwner] = useState<Player | null>(null);
+  const [player2DeckOwner, setPlayer2DeckOwner] = useState<Player | null>(null);
+  const [selectedPlayer1Deck, setSelectedPlayer1Deck] = useState<Deck | null>(null);
+  const [selectedPlayer2Deck, setSelectedPlayer2Deck] = useState<Deck | null>(null);
   const [player1Wins, setPlayer1Wins] = useState(match.player1Wins);
   const [player2Wins, setPlayer2Wins] = useState(match.player2Wins);
   const [hasChanges, setHasChanges] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [showDeckSelector, setShowDeckSelector] = useState(false);
-  const [selectingDeckFor, setSelectingDeckFor] = useState<'player1' | 'player2' | null>(null);
+  const [showPlayer1DeckOwnerSelector, setShowPlayer1DeckOwnerSelector] = useState(false);
+  const [showPlayer2DeckOwnerSelector, setShowPlayer2DeckOwnerSelector] = useState(false);
+  const [showPlayer1DeckSelector, setShowPlayer1DeckSelector] = useState(false);
+  const [showPlayer2DeckSelector, setShowPlayer2DeckSelector] = useState(false);
 
   const isPlayer1 = currentUserEmail === match.player1Email;
 
@@ -47,13 +50,25 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
   }, []);
 
   useEffect(() => {
+    if (player1) {
+      setPlayer1DeckOwner(player1);
+    }
+  }, [player1]);
+
+  useEffect(() => {
+    if (player2) {
+      setPlayer2DeckOwner(player2);
+    }
+  }, [player2]);
+
+  useEffect(() => {
     const changed =
-      selectedPlayer1DeckId !== match.player1DeckId ||
-      selectedPlayer2DeckId !== match.player2DeckId ||
+      selectedPlayer1Deck?.id !== match.player1DeckId ||
+      selectedPlayer2Deck?.id !== match.player2DeckId ||
       player1Wins !== match.player1Wins ||
       player2Wins !== match.player2Wins;
     setHasChanges(changed);
-  }, [selectedPlayer1DeckId, selectedPlayer2DeckId, player1Wins, player2Wins]);
+  }, [selectedPlayer1Deck, selectedPlayer2Deck, player1Wins, player2Wins]);
 
   const loadMatchData = async () => {
     try {
@@ -64,16 +79,42 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
       const player1Doc = usersSnapshot.docs.find(d => d.data().email === match.player1Email);
       if (player1Doc) {
         const p1Data = player1Doc.data();
-        setPlayer1Name(p1Data.irlFirstName || p1Data.alias || 'Player 1');
-        setPlayer1Decks(p1Data.decks || []);
+        const p1: Player = {
+          uid: player1Doc.id,
+          email: p1Data.email || '',
+          alias: p1Data.alias || '',
+          irlFirstName: p1Data.irlFirstName || '',
+          elo: p1Data.elo ?? 1000
+        };
+        setPlayer1(p1);
+
+        // Find and set the initial deck
+        const decks = p1Data.decks || [];
+        const initialDeck = decks.find((d: Deck) => d.id === match.player1DeckId);
+        if (initialDeck) {
+          setSelectedPlayer1Deck(initialDeck);
+        }
       }
 
       // Find player 2
       const player2Doc = usersSnapshot.docs.find(d => d.data().email === match.player2Email);
       if (player2Doc) {
         const p2Data = player2Doc.data();
-        setPlayer2Name(p2Data.irlFirstName || p2Data.alias || 'Player 2');
-        setPlayer2Decks(p2Data.decks || []);
+        const p2: Player = {
+          uid: player2Doc.id,
+          email: p2Data.email || '',
+          alias: p2Data.alias || '',
+          irlFirstName: p2Data.irlFirstName || '',
+          elo: p2Data.elo ?? 1000
+        };
+        setPlayer2(p2);
+
+        // Find and set the initial deck
+        const decks = p2Data.decks || [];
+        const initialDeck = decks.find((d: Deck) => d.id === match.player2DeckId);
+        if (initialDeck) {
+          setSelectedPlayer2Deck(initialDeck);
+        }
       }
     } catch (error) {
       console.error('Error loading match data:', error);
@@ -96,14 +137,26 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
     }
   };
 
-  const handleDeckSelect = (deck: Deck) => {
-    if (selectingDeckFor === 'player1') {
-      setSelectedPlayer1DeckId(deck.id);
-    } else {
-      setSelectedPlayer2DeckId(deck.id);
-    }
-    setShowDeckSelector(false);
-    setSelectingDeckFor(null);
+  const handlePlayer1DeckOwnerSelect = (player: Player) => {
+    setPlayer1DeckOwner(player);
+    setSelectedPlayer1Deck(null);
+    setShowPlayer1DeckOwnerSelector(false);
+  };
+
+  const handlePlayer2DeckOwnerSelect = (player: Player) => {
+    setPlayer2DeckOwner(player);
+    setSelectedPlayer2Deck(null);
+    setShowPlayer2DeckOwnerSelector(false);
+  };
+
+  const handlePlayer1DeckSelect = (deck: Deck) => {
+    setSelectedPlayer1Deck(deck);
+    setShowPlayer1DeckSelector(false);
+  };
+
+  const handlePlayer2DeckSelect = (deck: Deck) => {
+    setSelectedPlayer2Deck(deck);
+    setShowPlayer2DeckSelector(false);
   };
 
   const handleDiscard = async () => {
@@ -121,10 +174,15 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
   };
 
   const handleUpdate = async () => {
+    if (!selectedPlayer1Deck || !selectedPlayer2Deck) {
+      alert('Please select decks for both players');
+      return;
+    }
+
     try {
       await updateDoc(doc(db, 'unapprovedMatches', match.id), {
-        player1DeckId: selectedPlayer1DeckId,
-        player2DeckId: selectedPlayer2DeckId,
+        player1DeckId: selectedPlayer1Deck.id,
+        player2DeckId: selectedPlayer2Deck.id,
         player1Wins,
         player2Wins,
         p1Approval: isPlayer1,
@@ -145,11 +203,16 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
       return;
     }
 
+    if (!selectedPlayer1Deck || !selectedPlayer2Deck || !player1 || !player2) {
+      alert('Please select decks for both players');
+      return;
+    }
+
     try {
-      // Get player UIDs and ELOs
+      // Get player data for elo and stats
       const usersSnapshot = await getDocs(collection(db, 'users'));
-      const player1Doc = usersSnapshot.docs.find(d => d.data().email === match.player1Email);
-      const player2Doc = usersSnapshot.docs.find(d => d.data().email === match.player2Email);
+      const player1Doc = usersSnapshot.docs.find(d => d.id === player1.uid);
+      const player2Doc = usersSnapshot.docs.find(d => d.id === player2.uid);
 
       if (!player1Doc || !player2Doc) {
         throw new Error('Players not found');
@@ -171,36 +234,32 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
 
       // Update player stats
       const player1IsWinner = player1Wins > player2Wins;
-      await updateDoc(doc(db, 'users', player1Doc.id), {
+      await updateDoc(doc(db, 'users', player1.uid), {
         elo: eloResult.player1NewElo,
         wins: player1Data.wins + (player1IsWinner ? 1 : 0),
         losses: player1Data.losses + (player1IsWinner ? 0 : 1),
         points: (player1Data.points ?? 0) + (player1IsWinner ? 3 : 1)
       });
 
-      await updateDoc(doc(db, 'users', player2Doc.id), {
+      await updateDoc(doc(db, 'users', player2.uid), {
         elo: eloResult.player2NewElo,
         wins: player2Data.wins + (player1IsWinner ? 0 : 1),
         losses: player2Data.losses + (player1IsWinner ? 1 : 0),
         points: (player2Data.points ?? 0) + (player1IsWinner ? 1 : 3)
       });
 
-      // Get deck names
-      const p1Deck = (player1Data.decks || []).find((d: Deck) => d.id === selectedPlayer1DeckId);
-      const p2Deck = (player2Data.decks || []).find((d: Deck) => d.id === selectedPlayer2DeckId);
-
       // Create approved match record
       await addDoc(collection(db, 'matches'), {
         player1Email: match.player1Email,
-        player1FirstName: player1Data.alias || player1Data.irlFirstName || 'Unknown',
-        player1DeckName: p1Deck?.name || 'Unknown Deck',
-        player1DeckUrl: p1Deck?.decklistUrl || '',
+        player1FirstName: player1.alias || player1.irlFirstName || 'Unknown',
+        player1DeckName: selectedPlayer1Deck.name || 'Unknown Deck',
+        player1DeckUrl: selectedPlayer1Deck.decklistUrl || '',
         player1Wins,
         player1EloChange: eloResult.player1Change,
         player2Email: match.player2Email,
-        player2FirstName: player2Data.alias || player2Data.irlFirstName || 'Unknown',
-        player2DeckName: p2Deck?.name || 'Unknown Deck',
-        player2DeckUrl: p2Deck?.decklistUrl || '',
+        player2FirstName: player2.alias || player2.irlFirstName || 'Unknown',
+        player2DeckName: selectedPlayer2Deck.name || 'Unknown Deck',
+        player2DeckUrl: selectedPlayer2Deck.decklistUrl || '',
         player2Wins,
         player2EloChange: eloResult.player2Change,
         timeCreated: match.timeCreated
@@ -235,87 +294,27 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
           </div>
 
         <div className="approval-form">
-          <div className="player-section">
-            <h3>{player1Name}</h3>
+          <PlayerSection
+            title={player1 ? (player1.alias || player1.irlFirstName || player1.email) : 'Player 1'}
+            player={player1}
+            deckOwner={player1DeckOwner}
+            selectedDeck={selectedPlayer1Deck}
+            wins={player1Wins}
+            onDeckOwnerClick={() => setShowPlayer1DeckOwnerSelector(true)}
+            onDeckClick={() => setShowPlayer1DeckSelector(true)}
+            onWinsChange={handlePlayer1WinsChange}
+          />
 
-            <label>Deck</label>
-            {player1Decks.length > 0 ? (
-              <DeckDropdown
-                decks={player1Decks}
-                selectedDeck={player1Decks.find(d => d.id === selectedPlayer1DeckId) || null}
-                onSelect={(deck) => setSelectedPlayer1DeckId(deck?.id || '')}
-                placeholder="Select deck..."
-              />
-            ) : (
-              <div className="no-decks-message">This player has no decks</div>
-            )}
-            <button
-              className="select-other-deck-btn"
-              onClick={() => {
-                setSelectingDeckFor('player1');
-                setShowDeckSelector(true);
-              }}
-            >
-              Select another player's deck
-            </button>
-
-            <label>Wins</label>
-            <div className="wins-checkboxes">
-              {[0, 1].map(num => (
-                <label key={num} className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={player1Wins >= num + 1}
-                    onChange={() => handlePlayer1WinsChange(
-                      player1Wins >= num + 1 ? num : num + 1
-                    )}
-                  />
-                  {num + 1}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="player-section">
-            <h3>{player2Name}</h3>
-
-            <label>Deck</label>
-            {player2Decks.length > 0 ? (
-              <DeckDropdown
-                decks={player2Decks}
-                selectedDeck={player2Decks.find(d => d.id === selectedPlayer2DeckId) || null}
-                onSelect={(deck) => setSelectedPlayer2DeckId(deck?.id || '')}
-                placeholder="Select deck..."
-              />
-            ) : (
-              <div className="no-decks-message">This player has no decks</div>
-            )}
-            <button
-              className="select-other-deck-btn"
-              onClick={() => {
-                setSelectingDeckFor('player2');
-                setShowDeckSelector(true);
-              }}
-            >
-              Select another player's deck
-            </button>
-
-            <label>Wins</label>
-            <div className="wins-checkboxes">
-              {[0, 1].map(num => (
-                <label key={num} className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={player2Wins >= num + 1}
-                    onChange={() => handlePlayer2WinsChange(
-                      player2Wins >= num + 1 ? num : num + 1
-                    )}
-                  />
-                  {num + 1}
-                </label>
-              ))}
-            </div>
-          </div>
+          <PlayerSection
+            title={player2 ? (player2.alias || player2.irlFirstName || player2.email) : 'Player 2'}
+            player={player2}
+            deckOwner={player2DeckOwner}
+            selectedDeck={selectedPlayer2Deck}
+            wins={player2Wins}
+            onDeckOwnerClick={() => setShowPlayer2DeckOwnerSelector(true)}
+            onDeckClick={() => setShowPlayer2DeckSelector(true)}
+            onWinsChange={handlePlayer2WinsChange}
+          />
         </div>
 
         <div className="modal-actions">
@@ -332,13 +331,33 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
       </div>
     </div>
 
-    {showDeckSelector && (
+    {showPlayer1DeckOwnerSelector && (
+      <PlayerSelector
+        onSelect={handlePlayer1DeckOwnerSelect}
+        onClose={() => setShowPlayer1DeckOwnerSelector(false)}
+      />
+    )}
+
+    {showPlayer2DeckOwnerSelector && (
+      <PlayerSelector
+        onSelect={handlePlayer2DeckOwnerSelect}
+        onClose={() => setShowPlayer2DeckOwnerSelector(false)}
+      />
+    )}
+
+    {showPlayer1DeckSelector && player1DeckOwner && (
       <DeckSelector
-        onSelect={handleDeckSelect}
-        onClose={() => {
-          setShowDeckSelector(false);
-          setSelectingDeckFor(null);
-        }}
+        onSelect={handlePlayer1DeckSelect}
+        onClose={() => setShowPlayer1DeckSelector(false)}
+        ownerId={player1DeckOwner.uid}
+      />
+    )}
+
+    {showPlayer2DeckSelector && player2DeckOwner && (
+      <DeckSelector
+        onSelect={handlePlayer2DeckSelect}
+        onClose={() => setShowPlayer2DeckSelector(false)}
+        ownerId={player2DeckOwner.uid}
       />
     )}
     </>
