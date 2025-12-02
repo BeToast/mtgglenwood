@@ -158,6 +158,17 @@
    opacity: 0.8;
 }
 
+.log-match-btn:disabled {
+   background-color: var(--bg-brown-deep);
+   color: var(--text-secondary);
+   cursor: not-allowed;
+   opacity: 0.5;
+}
+
+.log-match-btn:disabled:hover {
+   opacity: 0.5;
+}
+
 @media (max-width: 640px) {
    .matches-header h1 {
       font-size: 1.5rem;

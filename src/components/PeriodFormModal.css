@@ -1,0 +1,91 @@
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.form-field input,
+.form-field select {
+  padding: 0.75rem;
+  font-size: 1rem;
+  background-color: var(--bg-brown-deep);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-row .form-field {
+  flex: 1;
+}
+
+.form-error {
+  padding: 0.75rem;
+  background-color: rgba(139, 0, 0, 0.2);
+  border: 1px solid #8b0000;
+  border-radius: 4px;
+  color: #ff6b6b;
+  font-size: 0.875rem;
+}
+
+.time-preview {
+  padding: 0.75rem;
+  background-color: var(--bg-brown-deep);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.time-preview strong {
+  color: var(--text-primary);
+}
+
+.weekday-selector-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.weekday-selector-item {
+  padding: 0.75rem 1rem;
+  background-color: var(--bg-brown-deep);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.weekday-selector-item:hover {
+  background-color: var(--bg-brown-light);
+  border-color: var(--accent-blue);
+}
+
+.weekday-selector-item.selected {
+  background-color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  font-weight: 600;
+}

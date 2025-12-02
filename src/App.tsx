@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { AuthProvider } from './context/AuthContext';
 import { UnsavedChangesProvider } from './context/UnsavedChangesContext';
@@ -9,6 +9,7 @@ import Home from './pages/Home';
 import Ladder from './pages/Ladder';
 import Matches from './pages/Matches';
 import Profile from './pages/Profile';
+import Schedule from './pages/Schedule';
 import NavigationBar from './components/NavigationBar';
 import MatchApprovalModal from './components/MatchApprovalModal';
 import './App.css';
@@ -87,6 +88,7 @@ function AppContent() {
             <Route path="/ladder" element={<Ladder />} />
             <Route path="/matches" element={<Matches />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/schedule" element={<Schedule />} />
           </Routes>
         </div>
         <NavigationBar />

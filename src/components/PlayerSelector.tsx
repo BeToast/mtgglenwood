@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
+import { type Period } from '../utils/periodCalculator';
+import { type MatchCount, getMultiplePlayerMatchCounts } from '../utils/matchCounter';
 import './PlayerSelector.css';
 
 export interface Player {
@@ -15,16 +17,24 @@ interface PlayerSelectorProps {
   onSelect: (player: Player) => void;
   onClose: () => void;
   excludeEmail?: string;
+  currentPeriod?: Period | null;
 }
 
-function PlayerSelector({ onSelect, onClose, excludeEmail }: PlayerSelectorProps) {
+function PlayerSelector({ onSelect, onClose, excludeEmail, currentPeriod }: PlayerSelectorProps) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [playerMatchCounts, setPlayerMatchCounts] = useState<Map<string, MatchCount>>(new Map());
 
   useEffect(() => {
     loadPlayers();
   }, []);
+
+  useEffect(() => {
+    if (currentPeriod && players.length > 0) {
+      loadMatchCounts();
+    }
+  }, [currentPeriod, players]);
 
   const loadPlayers = async () => {
     try {
@@ -51,6 +61,18 @@ function PlayerSelector({ onSelect, onClose, excludeEmail }: PlayerSelectorProps
       console.error('Error loading players:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMatchCounts = async () => {
+    if (!currentPeriod) return;
+
+    try {
+      const emails = players.map(p => p.email);
+      const counts = await getMultiplePlayerMatchCounts(emails, currentPeriod.id, currentPeriod.matchesPerPlayer);
+      setPlayerMatchCounts(counts);
+    } catch (error) {
+      console.error('Error loading match counts:', error);
     }
   };
 
@@ -92,25 +114,35 @@ function PlayerSelector({ onSelect, onClose, excludeEmail }: PlayerSelectorProps
           ) : filteredPlayers.length === 0 ? (
             <div className="no-players-found">No players found</div>
           ) : (
-            filteredPlayers.map(player => (
-              <div
-                key={player.uid}
-                className="player-selector-item"
-                onClick={() => handleSelect(player)}
-              >
-                <div className="player-info">
-                  <div className="player-name">
-                    {player.alias || player.irlFirstName || 'Unknown'}
+            filteredPlayers.map(player => {
+              const matchCount = playerMatchCounts.get(player.email);
+              const isDisabled = matchCount?.matchesRemaining === 0;
+
+              return (
+                <div
+                  key={player.uid}
+                  className={`player-selector-item ${isDisabled ? 'disabled' : ''}`}
+                  onClick={() => !isDisabled && handleSelect(player)}
+                >
+                  <div className="player-info">
+                    <div className="player-name">
+                      {player.alias || player.irlFirstName || 'Unknown'}
+                    </div>
+                    <div className="player-details">
+                      {player.irlFirstName && player.alias && (
+                        <span className="player-firstname">{player.irlFirstName}</span>
+                      )}
+                      {matchCount && (
+                        <span className="player-matches">
+                          {matchCount.matchesLogged}/{matchCount.periodLimit} matches played
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="player-details">
-                    {player.irlFirstName && player.alias && (
-                      <span className="player-firstname">{player.irlFirstName}</span>
-                    )}
-                  </div>
+                  <div className="player-elo">{player.elo}</div>
                 </div>
-                <div className="player-elo">{player.elo}</div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

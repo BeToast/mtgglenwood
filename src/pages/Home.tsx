@@ -11,11 +11,14 @@ function Home() {
                Second, press 🎴 to view or log an IRL best-of-3 Value Vintage
                match. Once you log a match, your opponent must log in and
                approve it. Upon approval, the winner is awarded 3pts and the
-               loser 1pt. You are able to log{" "}
-               <strong>6 matches per week</strong>: 3 from 5pm to midnight on
-               Tuesday, and 3 during the rest of the week.
+               loser 1pt.
             </p>
-            <p>Third, press 🪜 to view the ladder!</p>
+            <p>
+               Third, Press 📅 to view the Match Periods. You are able to log{" "}
+               <strong>6 matches per week</strong> broken into two Match
+               Periods.
+            </p>
+            <p>Fourth, press 🪜 to view the ladder!</p>
             <br />
             <p>
                If you have any comments or concerns, please throw eggs at

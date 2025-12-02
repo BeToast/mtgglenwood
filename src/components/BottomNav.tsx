@@ -13,6 +13,12 @@ function BottomNav() {
         <span className="nav-icon">🏡</span>
       </Link>
       <Link
+        to="/schedule"
+        className={`nav-button ${location.pathname === '/schedule' ? 'active' : ''}`}
+      >
+        <span className="nav-icon">📅</span>
+      </Link>
+      <Link
         to="/ladder"
         className={`nav-button ${location.pathname === '/ladder' ? 'active' : ''}`}
       >

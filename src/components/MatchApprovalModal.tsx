@@ -6,6 +6,8 @@ import { calculateElo } from '../utils/eloCalculator';
 import PlayerSelector, { type Player } from './PlayerSelector';
 import DeckSelector from './DeckSelector';
 import PlayerSection from './PlayerSection';
+import { getAllPeriods, getCurrentPeriod } from '../utils/periodCalculator';
+import { type MatchCount, getPlayerMatchCount } from '../utils/matchCounter';
 import './MatchApprovalModal.css';
 
 interface UnapprovedMatch {
@@ -18,6 +20,7 @@ interface UnapprovedMatch {
   player2Wins: number;
   p1Approval: boolean;
   p2Approval: boolean;
+  periodId?: string;
   timeCreated: string;
 }
 
@@ -42,11 +45,13 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
   const [showPlayer2DeckOwnerSelector, setShowPlayer2DeckOwnerSelector] = useState(false);
   const [showPlayer1DeckSelector, setShowPlayer1DeckSelector] = useState(false);
   const [showPlayer2DeckSelector, setShowPlayer2DeckSelector] = useState(false);
+  const [currentUserMatchCount, setCurrentUserMatchCount] = useState<MatchCount | null>(null);
 
   const isPlayer1 = currentUserEmail === match.player1Email;
 
   useEffect(() => {
     loadMatchData();
+    loadCurrentUserMatchCount();
   }, []);
 
   useEffect(() => {
@@ -120,6 +125,21 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
       console.error('Error loading match data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCurrentUserMatchCount = async () => {
+    try {
+      const periods = await getAllPeriods();
+      if (periods.length === 0) return;
+
+      const currentPeriod = getCurrentPeriod(periods);
+      if (!currentPeriod) return;
+
+      const count = await getPlayerMatchCount(currentUserEmail, currentPeriod.id, currentPeriod.matchesPerPlayer);
+      setCurrentUserMatchCount(count);
+    } catch (error) {
+      console.error('Error loading current user match count:', error);
     }
   };
 
@@ -209,6 +229,24 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
     }
 
     try {
+      // Validate period limits before approving
+      const periods = await getAllPeriods();
+      const currentPeriod = getCurrentPeriod(periods);
+
+      if (currentPeriod) {
+        const player1Count = await getPlayerMatchCount(player1.email, currentPeriod.id, currentPeriod.matchesPerPlayer);
+        const player2Count = await getPlayerMatchCount(player2.email, currentPeriod.id, currentPeriod.matchesPerPlayer);
+
+        if (player1Count.matchesRemaining === 0) {
+          alert(`${player1.alias || player1.irlFirstName} has reached their match limit for this period`);
+          return;
+        }
+
+        if (player2Count.matchesRemaining === 0) {
+          alert(`${player2.alias || player2.irlFirstName} has reached their match limit for this period`);
+          return;
+        }
+      }
       // Get player data for elo and stats
       const usersSnapshot = await getDocs(collection(db, 'users'));
       const player1Doc = usersSnapshot.docs.find(d => d.id === player1.uid);
@@ -262,6 +300,7 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
         player2DeckUrl: selectedPlayer2Deck.decklistUrl || '',
         player2Wins,
         player2EloChange: eloResult.player2Change,
+        periodId: match.periodId || '',
         timeCreated: match.timeCreated
       });
 
@@ -324,8 +363,13 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
           <button
             className="modal-save-btn"
             onClick={hasChanges ? handleUpdate : handleApprove}
+            disabled={!hasChanges && currentUserMatchCount ? currentUserMatchCount.matchesLogged >= currentUserMatchCount.periodLimit : false}
           >
-            {hasChanges ? 'Update' : 'Approve'}
+            {hasChanges
+              ? 'Update'
+              : currentUserMatchCount
+                ? `Approve Match ${currentUserMatchCount.matchesLogged + 1}/${currentUserMatchCount.periodLimit}?`
+                : 'Approve'}
           </button>
         </div>
       </div>

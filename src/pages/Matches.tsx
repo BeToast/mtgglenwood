@@ -3,6 +3,11 @@ import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
 import LogMatchModal from "../components/LogMatchModal";
+import {
+   getAllPeriods,
+   getCurrentPeriod,
+} from "../utils/periodCalculator";
+import { type MatchCount, getPlayerMatchCount } from "../utils/matchCounter";
 import "./Matches.css";
 
 interface Match {
@@ -29,10 +34,17 @@ function Matches() {
    const [loading, setLoading] = useState(true);
    const [isLogMatchModalOpen, setIsLogMatchModalOpen] = useState(false);
    const [copiedDeck, setCopiedDeck] = useState<string | null>(null);
+   const [matchCount, setMatchCount] = useState<MatchCount | null>(null);
 
    useEffect(() => {
       loadMatches();
    }, []);
+
+   useEffect(() => {
+      if (user?.email) {
+         loadMatchCount();
+      }
+   }, [user]);
 
    const loadMatches = async () => {
       try {
@@ -69,6 +81,28 @@ function Matches() {
       }
    };
 
+   const loadMatchCount = async () => {
+      if (!user?.email) return;
+
+      try {
+         const periods = await getAllPeriods();
+         if (periods.length === 0) return;
+
+         const current = getCurrentPeriod(periods);
+
+         if (current) {
+            const count = await getPlayerMatchCount(
+               user.email,
+               current.id,
+               current.matchesPerPlayer
+            );
+            setMatchCount(count);
+         }
+      } catch (error) {
+         console.error("Error loading match count:", error);
+      }
+   };
+
    const filteredMatches = useMemo(() => {
       if (!search.trim()) return matches;
 
@@ -85,9 +119,13 @@ function Matches() {
    const handleMatchLogged = () => {
       setIsLogMatchModalOpen(false);
       loadMatches();
+      loadMatchCount();
    };
 
-   const handleDeckClick = async (deckUrl: string | undefined, deckId: string) => {
+   const handleDeckClick = async (
+      deckUrl: string | undefined,
+      deckId: string
+   ) => {
       if (!deckUrl) return;
 
       try {
@@ -95,7 +133,7 @@ function Matches() {
          setCopiedDeck(deckId);
          setTimeout(() => setCopiedDeck(null), 2000);
       } catch (err) {
-         console.error('Failed to copy:', err);
+         console.error("Failed to copy:", err);
       }
    };
 
@@ -135,26 +173,22 @@ function Matches() {
                              name: match.player1FirstName,
                              deck: match.player1DeckName,
                              deckUrl: match.player1DeckUrl,
-                             eloChange: match.player1EloChange,
                           }
                         : {
                              name: match.player2FirstName,
                              deck: match.player2DeckName,
                              deckUrl: match.player2DeckUrl,
-                             eloChange: match.player2EloChange,
                           };
                      const loser = isPlayer1Winner
                         ? {
                              name: match.player2FirstName,
                              deck: match.player2DeckName,
                              deckUrl: match.player2DeckUrl,
-                             eloChange: match.player2EloChange,
                           }
                         : {
                              name: match.player1FirstName,
                              deck: match.player1DeckName,
                              deckUrl: match.player1DeckUrl,
-                             eloChange: match.player1EloChange,
                           };
 
                      const winnerWins = isPlayer1Winner
@@ -182,13 +216,19 @@ function Matches() {
                               <span className="points-indicator">+3pts</span>
                               <span className="player-name">{winner.name}</span>
                               <span
-                                 className={`deck-name ${copiedDeck === winnerDeckId ? 'copied' : ''}`}
-                                 onClick={() => handleDeckClick(winner.deckUrl, winnerDeckId)}
+                                 className={`deck-name ${
+                                    copiedDeck === winnerDeckId ? "copied" : ""
+                                 }`}
+                                 onClick={() =>
+                                    handleDeckClick(
+                                       winner.deckUrl,
+                                       winnerDeckId
+                                    )
+                                 }
                               >
-                                 {copiedDeck === winnerDeckId ? 'deck url copied' : winner.deck}
-                              </span>
-                              <span className="elo-change">
-                                 +{winner.eloChange}
+                                 {copiedDeck === winnerDeckId
+                                    ? "deck url copied"
+                                    : winner.deck}
                               </span>
                            </div>
                            <div className="match-result loser">
@@ -204,13 +244,16 @@ function Matches() {
                               <span className="points-indicator">+1pt</span>
                               <span className="player-name">{loser.name}</span>
                               <span
-                                 className={`deck-name ${copiedDeck === loserDeckId ? 'copied' : ''}`}
-                                 onClick={() => handleDeckClick(loser.deckUrl, loserDeckId)}
+                                 className={`deck-name ${
+                                    copiedDeck === loserDeckId ? "copied" : ""
+                                 }`}
+                                 onClick={() =>
+                                    handleDeckClick(loser.deckUrl, loserDeckId)
+                                 }
                               >
-                                 {copiedDeck === loserDeckId ? 'deck url copied' : loser.deck}
-                              </span>
-                              <span className="elo-change">
-                                 {loser.eloChange}
+                                 {copiedDeck === loserDeckId
+                                    ? "deck url copied"
+                                    : loser.deck}
                               </span>
                            </div>
                         </div>
@@ -224,8 +267,17 @@ function Matches() {
             <button
                className="log-match-btn"
                onClick={() => setIsLogMatchModalOpen(true)}
+               disabled={matchCount?.matchesRemaining === 0}
             >
-               Log Match
+               {matchCount ? (
+                  matchCount.matchesLogged >= matchCount.periodLimit ? (
+                     `You logged ${matchCount.matchesLogged}/${matchCount.periodLimit} matches this period`
+                  ) : (
+                     `Log Match (${matchCount.matchesLogged + 1}/${matchCount.periodLimit})`
+                  )
+               ) : (
+                  "Log Match"
+               )}
             </button>
          ) : null}
 

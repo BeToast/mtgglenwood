@@ -229,3 +229,14 @@
 .confirmation-message strong {
    color: var(--accent-blue);
 }
+
+.match-limit-warning {
+   padding: 0.75rem;
+   background-color: rgba(139, 0, 0, 0.2);
+   border: 1px solid #8b0000;
+   border-radius: 4px;
+   color: #ff6b6b;
+   font-size: 0.875rem;
+   text-align: center;
+   margin-top: 1rem;
+}

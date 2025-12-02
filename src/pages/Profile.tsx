@@ -13,6 +13,8 @@ import DeckItem, { type Deck } from "../components/DeckItem";
 import AddDeckModal from "../components/AddDeckModal";
 import EditDeckModal from "../components/EditDeckModal";
 import CreateAccountModal from "../components/CreateAccountModal";
+import { type Period, getAllPeriods, getCurrentPeriod, formatPeriodTime } from "../utils/periodCalculator";
+import { type MatchCount, getPlayerMatchCount } from "../utils/matchCounter";
 import "./Profile.css";
 
 interface UserProfile {
@@ -52,10 +54,14 @@ function Profile() {
       email: string;
       password: string;
    } | null>(null);
+   const [currentPeriod, setCurrentPeriod] = useState<Period | null>(null);
+   const [nextPeriod, setNextPeriod] = useState<Period | null>(null);
+   const [matchCount, setMatchCount] = useState<MatchCount | null>(null);
 
    useEffect(() => {
       if (user) {
          loadUserProfile();
+         loadPeriodInfo();
       } else {
          setHasUnsavedChanges(false);
          setSaveCallback(null);
@@ -138,6 +144,7 @@ function Profile() {
                wins: defaultWins,
                losses: defaultLosses,
                email: user.email,
+               admin: false,
                createdAt: new Date().toISOString(),
                updatedAt: new Date().toISOString(),
             });
@@ -154,6 +161,33 @@ function Profile() {
       } catch (error) {
          console.error("Error loading profile:", error);
          setStatsLoading(false);
+      }
+   };
+
+   const loadPeriodInfo = async () => {
+      if (!user?.email) return;
+
+      try {
+         const periods = await getAllPeriods();
+         if (periods.length === 0) return;
+
+         const current = getCurrentPeriod(periods);
+         setCurrentPeriod(current);
+
+         if (current) {
+            // Find next period (chronologically after current)
+            const currentIndex = periods.findIndex(p => p.id === current.id);
+            const next = currentIndex >= 0 && currentIndex < periods.length - 1
+               ? periods[currentIndex + 1]
+               : periods[0]; // Wrap around to first period
+            setNextPeriod(next);
+
+            // Load match count for current period
+            const count = await getPlayerMatchCount(user.email, current.id, current.matchesPerPlayer);
+            setMatchCount(count);
+         }
+      } catch (error) {
+         console.error("Error loading period info:", error);
       }
    };
 
@@ -466,6 +500,12 @@ function Profile() {
                   </>
                )}
             </div>
+
+            {currentPeriod && nextPeriod && matchCount && (
+               <div className="matches-remaining-banner">
+                  You have {matchCount.matchesRemaining} {matchCount.matchesRemaining === 1 ? 'match' : 'matches'} remaining until {formatPeriodTime(nextPeriod)}
+               </div>
+            )}
 
             <div className="decks-section">
                <h3>Your Decks</h3>

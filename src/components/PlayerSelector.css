@@ -86,3 +86,19 @@
   font-weight: 700;
   color: var(--accent-blue);
 }
+
+.player-selector-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--bg-brown-deep);
+}
+
+.player-selector-item.disabled:hover {
+  background-color: var(--bg-brown-deep);
+  border-color: var(--border-color);
+}
+
+.player-matches {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
