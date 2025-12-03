@@ -27,7 +27,7 @@ service cloud.firestore {
 
     match /matches/{matchId} {
       allow read: if isAuthenticated();
-      allow create: if false; // Only via approval flow
+      allow create: if isAuthenticated();
       allow update: if false;
       allow delete: if isAdmin();
     }
