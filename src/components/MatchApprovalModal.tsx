@@ -189,7 +189,19 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
       onComplete();
     } catch (error) {
       console.error('Error deleting match:', error);
-      alert('Failed to delete match');
+      let errorMessage = 'Failed to delete match';
+
+      if (error instanceof Error) {
+        if (error.message.includes('permission-denied')) {
+          errorMessage = 'Permission denied. Make sure you\'re logged in properly.';
+        } else if (error.message.includes('unauthenticated')) {
+          errorMessage = 'Authentication failed. Please refresh and log in again.';
+        } else {
+          errorMessage = `Error: ${error.message}`;
+        }
+      }
+
+      alert(errorMessage);
     }
   };
 
@@ -213,7 +225,19 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
       onComplete();
     } catch (error) {
       console.error('Error updating match:', error);
-      alert('Failed to update match');
+      let errorMessage = 'Failed to update match';
+
+      if (error instanceof Error) {
+        if (error.message.includes('permission-denied')) {
+          errorMessage = 'Permission denied. Make sure you\'re logged in properly.';
+        } else if (error.message.includes('unauthenticated')) {
+          errorMessage = 'Authentication failed. Please refresh and log in again.';
+        } else {
+          errorMessage = `Error: ${error.message}`;
+        }
+      }
+
+      alert(errorMessage);
     }
   };
 
@@ -310,7 +334,23 @@ function MatchApprovalModal({ match, currentUserEmail, onComplete }: MatchApprov
       onComplete();
     } catch (error) {
       console.error('Error approving match:', error);
-      alert('Failed to approve match');
+      let errorMessage = 'Failed to approve match';
+
+      if (error instanceof Error) {
+        if (error.message.includes('permission-denied')) {
+          errorMessage = 'Permission denied. Make sure you\'re logged in properly.';
+        } else if (error.message.includes('not-found')) {
+          errorMessage = 'Player data not found. Please try logging out and back in.';
+        } else if (error.message.includes('unauthenticated')) {
+          errorMessage = 'Authentication failed. Please refresh and log in again.';
+        } else if (error.message.includes('Players not found')) {
+          errorMessage = 'One or both players could not be found.';
+        } else {
+          errorMessage = `Error: ${error.message}`;
+        }
+      }
+
+      alert(errorMessage);
     }
   };
 
