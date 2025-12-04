@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { AuthProvider } from './context/AuthContext';
 import { UnsavedChangesProvider } from './context/UnsavedChangesContext';
 import { useAuth } from './context/AuthContext';
@@ -32,51 +32,50 @@ function AppContent() {
   const [pendingMatch, setPendingMatch] = useState<UnapprovedMatch | null>(null);
 
   useEffect(() => {
-    if (user?.email) {
-      checkForPendingMatches();
-    }
-  }, [user]);
-
-  const checkForPendingMatches = async () => {
     if (!user?.email) return;
 
-    try {
-      const unapprovedCollection = collection(db, 'unapprovedMatches');
+    const unapprovedCollection = collection(db, 'unapprovedMatches');
+    let player1Match: UnapprovedMatch | null = null;
+    let player2Match: UnapprovedMatch | null = null;
 
-      // Check for matches where user is player 1 and hasn't approved yet
-      const q1 = query(
-        unapprovedCollection,
-        where('player1Email', '==', user.email),
-        where('p1Approval', '==', false)
-      );
+    // Listen for matches where user is player 1 and hasn't approved yet
+    const q1 = query(
+      unapprovedCollection,
+      where('player1Email', '==', user.email),
+      where('p1Approval', '==', false)
+    );
 
-      // Check for matches where user is player 2 and hasn't approved yet
-      const q2 = query(
-        unapprovedCollection,
-        where('player2Email', '==', user.email),
-        where('p2Approval', '==', false)
-      );
+    // Listen for matches where user is player 2 and hasn't approved yet
+    const q2 = query(
+      unapprovedCollection,
+      where('player2Email', '==', user.email),
+      where('p2Approval', '==', false)
+    );
 
-      const [snapshot1, snapshot2] = await Promise.all([
-        getDocs(q1),
-        getDocs(q2)
-      ]);
+    const updatePendingMatch = () => {
+      setPendingMatch(player1Match || player2Match || null);
+    };
 
-      if (!snapshot1.empty) {
-        const doc = snapshot1.docs[0];
-        setPendingMatch({ id: doc.id, ...doc.data() } as UnapprovedMatch);
-      } else if (!snapshot2.empty) {
-        const doc = snapshot2.docs[0];
-        setPendingMatch({ id: doc.id, ...doc.data() } as UnapprovedMatch);
-      }
-    } catch (error) {
-      console.error('Error checking for pending matches:', error);
-    }
-  };
+    // Set up real-time listeners
+    const unsubscribe1 = onSnapshot(q1, (snapshot) => {
+      player1Match = snapshot.empty ? null : ({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as UnapprovedMatch);
+      updatePendingMatch();
+    });
+
+    const unsubscribe2 = onSnapshot(q2, (snapshot) => {
+      player2Match = snapshot.empty ? null : ({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as UnapprovedMatch);
+      updatePendingMatch();
+    });
+
+    // Cleanup both listeners on unmount or user change
+    return () => {
+      unsubscribe1();
+      unsubscribe2();
+    };
+  }, [user]);
 
   const handleApprovalComplete = () => {
     setPendingMatch(null);
-    checkForPendingMatches();
   };
 
   return (
